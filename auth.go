@@ -2,25 +2,24 @@ package main
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 )
 
-type User struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+func hasRole(role string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		token := c.Locals("user").(*jwt.Token)
+		claims := token.Claims.(jwt.MapClaims)
+
+		if claims["role"] == role || claims["role"] == "admin" {
+			return c.Next()
+		}
+
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "No permission",
+			"status": fiber.StatusForbidden,
+		})
+	}
 }
 
-var user = User{
-	Email:    "admin@admin.com",
-	Password: "admin",
-}
-
-func isAuth(c *fiber.Ctx) error {
-	loginUser := new(User)
-	if err := c.BodyParser(loginUser); err != nil {
-		return c.Status(fiber.StatusBadRequest).SendString(err.Error())
-	}
-	if user.Email == loginUser.Email && user.Password == loginUser.Password {
-		return c.Next()
-	}
-	return fiber.ErrUnauthorized
-}
+var IsAdmin = hasRole("admin")
+var IsMember = hasRole("member")
