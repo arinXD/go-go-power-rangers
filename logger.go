@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func logger(c *fiber.Ctx) error {
+func httpLogger(c *fiber.Ctx) error {
 	url := c.OriginalURL()
 	method := c.Method()
 	log.Printf("[%s] %s", method, url)
